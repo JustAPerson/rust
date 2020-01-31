@@ -374,6 +374,43 @@ impl<T> [T] {
         sort_by_key!(usize, self, f)
     }
 
+    /// Sorts the slice with a field extraction function.
+    ///
+    /// This sort is stable (i.e., does not reorder equal elements) and `O(m n log(m n))`
+    /// worst-case, where the field function is `O(m)`.
+    ///
+    /// When applicable, unstable sorting is preferred because it is generally faster than stable
+    /// sorting and it doesn't allocate auxiliary memory.
+    /// See [`sort_unstable_by_field`](#method.sort_unstable_by_field).
+    ///
+    /// # Current implementation
+    ///
+    /// The current algorithm is an adaptive, iterative merge sort inspired by
+    /// [timsort](https://en.wikipedia.org/wiki/Timsort).
+    /// It is designed to be very fast in cases where the slice is nearly sorted, or consists of
+    /// two or more sorted sequences concatenated one after another.
+    ///
+    /// Also, it allocates temporary storage half the size of `self`, but for short slices a
+    /// non-allocating insertion sort is used instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut v = [(0, "foo"), (1, "bar")];
+    ///
+    /// v.sort_by_field(|(_, s)| s); // sort by the string in the tuple
+    /// assert!(v == [(1, "bar"), (0, "foo")]);
+    /// ```
+    #[unstable(feature = "slice_sort_by_field", issue = "0")]
+    #[inline]
+    pub fn sort_by_field<K, F>(&mut self, mut f: F)
+    where
+        for<'a> F: FnMut(&'a T) -> &'a K,
+        K: Ord,
+    {
+        merge_sort(self, |a, b| f(a).lt(&f(b)));
+    }
+
     /// Copies `self` into a new `Vec`.
     ///
     /// # Examples

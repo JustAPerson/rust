@@ -117,6 +117,7 @@
 #![feature(unsized_locals)]
 #![feature(allocator_internals)]
 #![feature(slice_partition_dedup)]
+#![feature(slice_sort_by_field)]
 #![feature(maybe_uninit_extra, maybe_uninit_slice)]
 #![feature(alloc_layout_extra)]
 #![feature(try_trait)]

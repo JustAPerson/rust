@@ -1682,6 +1682,41 @@ impl<T> [T] {
         sort::quicksort(self, |a, b| f(a).lt(&f(b)));
     }
 
+    /// Sorts the slice with a field extraction function, but may not preserve the order of equal
+    /// elements.
+    ///
+    /// This sort is unstable (i.e., may reorder equal elements), in-place
+    /// (i.e., does not allocate), and `O(m n log(m n))` worst-case, where the field function is
+    /// `O(m)`.
+    ///
+    /// # Current implementation
+    ///
+    /// The current algorithm is based on [pattern-defeating quicksort][pdqsort] by Orson Peters,
+    /// which combines the fast average case of randomized quicksort with the fast worst case of
+    /// heapsort, while achieving linear time on slices with certain patterns. It uses some
+    /// randomization to avoid degenerate cases, but with a fixed seed to always provide
+    /// deterministic behavior.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut v = [(0, "foo"), (1, "bar")];
+    ///
+    /// v.sort_unstable_by_field(|(_, s)| s); // sort by the string in the tuple
+    /// assert!(v == [(1, "bar"), (0, "foo")]);
+    /// ```
+    ///
+    /// [pdqsort]: https://github.com/orlp/pdqsort
+    #[unstable(feature = "slice_sort_by_field", issue = "0")]
+    #[inline]
+    pub fn sort_unstable_by_field<K, F>(&mut self, mut f: F)
+    where
+        for<'a> F: FnMut(&'a T) -> &'a K,
+        K: Ord,
+    {
+        sort::quicksort(self, |a, b| f(a).lt(&f(b)));
+    }
+
     /// Reorder the slice such that the element at `index` is at its final sorted position.
     ///
     /// This reordering has the additional property that any value at position `i < index` will be
